@@ -1,0 +1,92 @@
+Dataset available at:
+https://www.kaggle.com/datasets/felipeesc/shark-attack-dataset?resource=download&select=attacks.csv
+
+
+Entrega:
+    1 - Relatório técnico:
+        CAPA
+            Nome do projeto
+            Nome dos integrantes
+            Data de Entrega
+
+        ABSTRACT (RESUMO)
+            Apresentação do projeto
+            Descrição da base de dados
+            Principais métodos utilizados
+            Principais resultados
+
+        INTRODUÇÃO
+            Contextualização do problema
+            Justificativa de escolha do problema e da base de dados
+            Ojetivos específicos do projeto
+
+        DESCRIÇÃO DA BASE DE DADOS
+            Origem
+            Características gerais (número de registros, número e tipo de variáveis, etc.)
+            Qualidade dos dados (presença de dados ausentes, inconsistências, etc.)
+            Discussão sobre atributos mais relevantes
+
+        METODOLOGIA
+            Etapas seguidas para a análise
+            Métodos de tratamento de dados ausentes, remoção de outliers
+            Ferramentas e bibliotecas utilizadas
+
+        RESULTADOS
+            Análise Univariada: estatísticas descritivas e gráficos (histogramas)
+            Análise Bivariada: relações entre as variáveis (correlações, gráficos de dispersão)
+            Análise Multivariada: técnicas para entender relações mais complexas (PCA, clustering)
+            Gráficos e tabelas bem-descritos e contextualizdos
+
+        DISCUSSÃO DE INSIGHTS
+            O que os resultados indicam ao problema proposto?
+            Como esses insights podem ser utilizados em um contexto real?
+            Quais são as limitações da análise?
+
+        CONCLUSÃO
+            Resumo das principais descobertas e reflexões sobre o impacto do trabalho
+            Propostas de estudos futuros ou abordagens alternativas
+
+        REFERÊNCIAS
+            Códigos, gráficos ou tabelas
+            https://www.kaggle.com/datasets/felipeesc/shark-attack-dataset?resource=download&select=attacks.csv
+
+    2 - Apresentação:
+        - PowerPoint
+        - Sessão de perguntas
+
+    3 - Código
+
+
+CRISP-DM
+    Entendimento ++
+        Identificar a estrutura dos dados +
+        Análise descritiva dos dados
+        Análise da qualidade dos dados +
+
+    Prepação / Transformação
+        Corrigir inconsistências
+        Limpeza dos dados
+        Pré-processamento e formatação dos dados
+
+    Modelagem +
+        Construção do modelo +
+        Teste do modelo
+        Métricas
+
+    Avaliação
+        Interpretação dos resultados
+        Impacto dos resultados
+        Revisão do modelo
+    
+    Visualização
+        Construção de gráficos
+        Insights
+
+    Comunicação - GROLEMUND and WICKHAM (2023)
+
+Perguntas:
+    Qual a probabilidade de alguém ser atacado?
+
+    A maior incidência de ataques é dos brancos?
+
+    Em quais circunstâncias é mais comum o ataque?
