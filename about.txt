@@ -56,7 +56,6 @@ Entrega:
 
     3 - Código
 
-
 CRISP-DM
     Entendimento ++
         Identificar a estrutura dos dados +
