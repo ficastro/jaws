@@ -3,11 +3,11 @@ import pandas as pd
 class DataFrame:
     def __init__(self, unfixed_dataframe):
         self.original = unfixed_dataframe
-        self.fixed = self.fixed_dataframe()
+        self.fix = self.fix()
 
         print('Original shape: '+ str(self.original.shape[0]) +' x '+ str(self.original.shape[1]))
 
-    def fixed_dataframe(self):
+    def fix(self):
         fixed_dataframe = self.original
 
         fixed_dataframe['DATE'] = fixed_dataframe['DATE'].replace([0, '0', 'xx'], pd.NA)
@@ -32,22 +32,36 @@ class DateVariable(Variable):
 
         super().__init__(column, values)
 
+class Injury(Variable):
+    def __init__(self, column, values):
+        self.amount = 0
+
+        super().__init__(column, values)
+
+    def amputation(self, row_value):
+
+        regexes = 'amput'
+        if 'amput' in row_value:
+            self.amount += 1
+
+
 
 def correct_fatality_info(dataframe): # Transform to true or false?
-    dataframe['FATAL'] = dataframe['FATAL'].replace(' N', 'N')
-    dataframe['FATAL'] = dataframe['FATAL'].replace('N ', 'N')
-    dataframe['FATAL'] = dataframe['FATAL'].replace('M', 'N')
+    dataframe['FATALITY'] = dataframe['FATALITY'].replace(' N', 'N')
+    dataframe['FATALITY'] = dataframe['FATALITY'].replace('N ', 'N')
+    dataframe['FATALITY'] = dataframe['FATALITY'].replace('M', 'N')
 
-    dataframe['FATAL'] = dataframe['FATAL'].replace('y', 'Y')
+    dataframe['FATALITY'] = dataframe['FATALITY'].replace('y', 'Y')
 
-    # dataframe['FATAL'] = dataframe['FATAL'].replace('UNKNOWN', '') # O que fazer com os dados desconhecidos?
-    dataframe['FATAL'] = dataframe['FATAL'].replace('2017', 'UNKNOWN')
+    # dataframe['FATALITY'] = dataframe['FATALITY'].replace('UNKNOWN', '') # O que fazer com os dados desconhecidos?
+    dataframe['FATALITY'] = dataframe['FATALITY'].replace('2017', 'UNKNOWN')
 
     return dataframe
 
 
 
 def main():
+    print("Running main...")
     csv_dataframe = pd.read_csv(
         "csv/shark_attacks.csv",
         encoding='latin1',
@@ -77,14 +91,14 @@ def main():
         'Sex ':         'SEX',
         'Age':          'AGE',
         'Injury':       'INJURY',
-        'Fatal (Y/N)':  'FATAL',
+        'Fatal (Y/N)':  'FATALITY',
         'Time':         'TIME',
         'Species':      'SPECIES'
     })
     
-    unfixed_dataframe = DataFrame(csv_dataframe)
+    original_dataframe = DataFrame(csv_dataframe)
     
-    fixed_dataframe = unfixed_dataframe.fixed
+    fixed_dataframe = original_dataframe.fix
     
 
     # print(df['COUNTRY'].value_counts())
@@ -105,9 +119,11 @@ def main():
         print(variable.values)
         print(variable.is_date) if variable.is_date else None
 
-        # variable_quartiles = variable.quartiles()
 
-        break # Para testar apenas com uma variável
+
+        # variable_quartiles = variable.quartiles() # pra que
+
+        break # Quick test
 
 
 print("\nRunning...\n")
