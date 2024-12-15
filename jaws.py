@@ -1,67 +1,106 @@
 import pandas as pd
 
-class DataFrame:
-    def __init__(self, unfixed_dataframe):
-        self.original = unfixed_dataframe
-        self.fix = self.fix()
+class Cleaning:
+    def __init__(self, original_dataframe):
+        self.original = original_dataframe
+        self.fixed = self.fix()
 
-        print('Original shape: '+ str(self.original.shape[0]) +' x '+ str(self.original.shape[1]))
-
+        print('\nOriginal shape: '+ str(self.original.shape[0]) +' x '+ str(self.original.shape[1]))
+        print('Fixed shape: '+ str(self.fixed.shape[0]) +' x '+ str(self.fixed.shape[1])+'\n')
+    
     def fix(self):
-        fixed_dataframe = self.original
+        print("\nFixing dataframe register issues..")
+        fixing_df = self.original.copy()
+        fixing_df = self.fix_dates(fixing_df)
+        fixing_df = self.fix_fatality(fixing_df)
 
-        fixed_dataframe['DATE'] = fixed_dataframe['DATE'].replace([0, '0', 'xx'], pd.NA)
-        fixed_dataframe = fixed_dataframe.dropna(how='all')
+        fixing_df = self.remove_empty(fixing_df)
+        return fixing_df
+    
+    def fix_dates(self, dataframe):
+        print("Fixing dates...")
+        dataframe['DATE'] = dataframe['DATE'].replace([0, '0', 'xx'], pd.NA) # Datas preenchidas como 0 ou xx
+        dataframe['DATE'] = dataframe['DATE'].replace(r'^ND', pd.NA, regex=True) # Datas preenchidas como "ND.0001"
+        dataframe['DATE'] = dataframe['DATE'].replace(r'^0+', pd.NA, regex=True) # Datas preenchidas como "000.04.33" ou "0500.44.00"
+        dataframe['DATE'] = dataframe['DATE'].replace(r'\.$', '', regex=True) # Datas terminadas em .
 
-        print('Fixed shape: '+ str(fixed_dataframe.shape[0]) +' x '+ str(self.original.shape[1]))
+        # dataframe['DATE'] = dataframe['DATE'].replace(r'^((?:[^\.]*\.){3}).*$', r'\1', regex=True) # Engloba os três casos abaixo:
+        dataframe['DATE'] = dataframe['DATE'].replace(r'\.\D+$', '', regex=True) # Datas terminadas em .R ou .a ou .b, etc.
+        dataframe['DATE'] = dataframe['DATE'].replace(r'\.\D\d$', '', regex=True) # Datas terminadas em .R1 ou .R2, etc.
+        dataframe['DATE'] = dataframe['DATE'].replace(r'\s.$', '', regex=True) # Datas terminadas em ' g' ou ' f', etc.
 
-        return fixed_dataframe
+        dataframe['YEAR'] = dataframe['YEAR'].replace(r'^0+', pd.NA, regex=True)
+        
+        return dataframe
 
+    def fix_fatality(self, dataframe):
+        print("Fixing fatalities...")
+        dataframe['FATALITY'] = dataframe['FATALITY'].astype(str)
+        dataframe['FATALITY'] = dataframe['FATALITY'].replace(' N', 'N')
+        dataframe['FATALITY'] = dataframe['FATALITY'].replace('N ', 'N')
+        dataframe['FATALITY'] = dataframe['FATALITY'].replace('M', 'N')
+        dataframe['FATALITY'] = dataframe['FATALITY'].replace('y', 'Y')
+        dataframe['FATALITY'] = dataframe['FATALITY'].replace('2017', None)
+        dataframe['FATALITY'] = dataframe['FATALITY'].replace('UNKNOWN', None)
+        dataframe['FATALITY'] = dataframe['FATALITY'].replace('nan', None)
+        dataframe['FATALITY'] = dataframe['FATALITY'].replace('<NA>', None)
 
-class Variable:
-    def __init__(self, column, values):
-        self.name = str(column)
-        self.values = values
-
-    def quartiles(self):
-        return
-
-class DateVariable(Variable):
-    def __init__(self, column, values):
-        self.is_date = True
-
-        super().__init__(column, values)
-
-class Injury(Variable):
-    def __init__(self, column, values):
-        self.amount = 0
-
-        super().__init__(column, values)
-
-    def amputation(self, row_value):
-
-        regexes = 'amput'
-        if 'amput' in row_value:
-            self.amount += 1
+        return dataframe
+    
+    def remove_empty(self, complete_df):
+        print("Removing empty rows...")
+        sliced_df = complete_df.dropna(how='all')
+        return sliced_df
+    
 
 
+class Analysis:
+    def __init__(self, fixed_dataframe):
+        self.dataframe = fixed_dataframe
+        
+        # self.date_analysis()
+        # self.country_analysis()
+        self.fatality_analysis()
 
-def correct_fatality_info(dataframe): # Transform to true or false?
-    dataframe['FATALITY'] = dataframe['FATALITY'].replace(' N', 'N')
-    dataframe['FATALITY'] = dataframe['FATALITY'].replace('N ', 'N')
-    dataframe['FATALITY'] = dataframe['FATALITY'].replace('M', 'N')
+    def date_analysis(self):
+        attacks_by_year = self.dataframe['YEAR'].value_counts().to_dict()
 
-    dataframe['FATALITY'] = dataframe['FATALITY'].replace('y', 'Y')
+        for value in self.dataframe['DATE'].values:
+            print(value)
 
-    # dataframe['FATALITY'] = dataframe['FATALITY'].replace('UNKNOWN', '') # O que fazer com os dados desconhecidos?
-    dataframe['FATALITY'] = dataframe['FATALITY'].replace('2017', 'UNKNOWN')
+        for year, count in self.dataframe['YEAR'].value_counts().items():
+            print(f'Year {year} - {count} shark attack(s) registered.')
 
-    return dataframe
+    def country_analysis(self):
+        attacks_by_country = self.dataframe['COUNTRY'].value_counts().to_dict()
 
+    def fatality_analysis(self):
+        total_attacks = len(self.dataframe['FATALITY']) # 6302
+        total_registers = self.dataframe['FATALITY'].count() # não conta None # 5691
+        fatalities = self.dataframe['FATALITY'].value_counts().get('Y') # 1389
+        non_fatalities = self.dataframe['FATALITY'].value_counts().get('N') # 4302
+        
+        missing_fatalities = self.dataframe['FATALITY'].isna().sum() # 611
+
+        fatality_percentage = round((fatalities / total_registers) * 100)
+        missing_positives_proportion = round(missing_fatalities * fatality_percentage/100)
+        missing_negatives_proportion = missing_fatalities - missing_positives_proportion
+
+        fatalities += missing_positives_proportion
+        non_fatalities += missing_negatives_proportion
+
+        new_fatality_percentage = round((fatalities / total_registers) * 100)
+
+        print(f'Total de ataques: {total_attacks}; sendo {fatalities} fatalidades, {non_fatalities} não-fatalidades e {missing_fatalities} valores faltantes')
+        print(f'-> O que representa uma mortalidade de {fatality_percentage}%, desconsiderando os valores faltantes.')
+        print(f'-> E uma porcentagem de {new_fatality_percentage}% corrigindo os valores faltantes proprocionalmente.')
+
+        return 
 
 
 def main():
-    print("Running main...")
+    print("\nRunning main...\n")
+
     csv_dataframe = pd.read_csv(
         "csv/shark_attacks.csv",
         encoding='latin1',
@@ -96,39 +135,28 @@ def main():
         'Species':      'SPECIES'
     })
     
-    original_dataframe = DataFrame(csv_dataframe)
-    
-    fixed_dataframe = original_dataframe.fix
-    
+    dataframe = Cleaning(csv_dataframe)
+    dataframe = dataframe.fixed
 
-    # print(df['COUNTRY'].value_counts())
-    # print(df['COUNTRY'].unique())
-
-    # df = correct_fatality_info(df)
-    # print(df['FATAL'].value_counts())
-    # Calcular porcentagem de fatalidades
-
-    for column, values in fixed_dataframe.items():
-        print(column)
-        if str(column) == 'DATE':
-            variable = DateVariable(str(column), values)
-        else:
-            variable = Variable
-
-        print(variable.name)
-        print(variable.values)
-        print(variable.is_date) if variable.is_date else None
+    analysis = Analysis(dataframe)
 
 
 
-        # variable_quartiles = variable.quartiles() # pra que
+if __name__ == '__main__':
+    main()
 
-        break # Quick test
 
 
-print("\nRunning...\n")
-main()
-# try:
-#     main()
-# except Exception as e:
-#     print(e)
+#     def simplify(self):
+#         simplifying_df = self.fixed
+#         simplifying_df = self.simplify_years(simplifying_df)
+
+#         simplifying_df = self.remove_empty(simplifying_df)
+#         return simplifying_df
+
+#     def simplify_years(self, complex_df):
+#         simplifying_df = complex_df
+#         simplifying_df['YEAR'] = simplifying_df['YEAR'].fillna(0).astype(int)
+#         simplified_df = simplifying_df[simplifying_df['YEAR'] > 1975]
+        
+#         return print(simplified_df)

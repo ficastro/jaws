@@ -39,6 +39,10 @@ Entrega:
 
         DISCUSSÃO DE INSIGHTS
             O que os resultados indicam ao problema proposto?
+                - YEAR: vê-se que os anos mais recentes possuem mais registros de ataques de tubarões,
+                o que não indica que o número de ataques têm crescido. Os dados não mostram nenhuma informação
+                relevante.
+
             Como esses insights podem ser utilizados em um contexto real?
             Quais são as limitações da análise?
 
