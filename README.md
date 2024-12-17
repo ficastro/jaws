@@ -1,1 +1,1 @@
-Data analysis on insights taken from shark attacks records.
+Data analysis & insights taken from shark attacks records.
