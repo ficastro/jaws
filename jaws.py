@@ -649,6 +649,9 @@ class BiAnalysis:
         # top_20_countries = self.dataframe.sort_values('COUNTRY').head(20)
         pass
 
+class Visualize:
+    def __init__(self):
+        pass
 
 
 def main():
@@ -690,7 +693,10 @@ def main():
     dataframe = dataframe.clean
 
     analysis = Analysis(dataframe)
-    bivariate_analysis = BiAnalysis(dataframe)
+    # bivariate_analysis = BiAnalysis(dataframe)
+
+    # views = Visualize()
+
 
     return print("\nJAWS FINISHED\n")
 
