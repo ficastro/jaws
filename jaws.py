@@ -19,8 +19,11 @@ class Cleaning:
         cleaning_df = self.clean_countries(cleaning_df)
         cleaning_df = self.clean_locations(cleaning_df)
         cleaning_df = self.clean_activities(cleaning_df)
+        cleaning_df = self.clean_ages(cleaning_df)
         cleaning_df = self.clean_injuries(cleaning_df)
         cleaning_df = self.clean_fatalities(cleaning_df)
+        cleaning_df = self.clean_time(cleaning_df)
+        cleaning_df = self.clean_species(cleaning_df)
 
         cleaning_df = cleaning_df.drop_duplicates()
         cleaning_df = cleaning_df.dropna(how='all')
@@ -55,6 +58,11 @@ class Cleaning:
         print("Cleaning countries...")
         df_to_clean['COUNTRY'] = df_to_clean['COUNTRY'].str.strip()
 
+        value_counts = df_to_clean['COUNTRY'].value_counts()
+        df_to_clean['COUNTRY'] = df_to_clean['COUNTRY'].map(
+            lambda country: 'Other' if value_counts.get(country, 0) < 10 else country
+        )
+
         return df_to_clean
     
     def clean_area(self, df_to_clean):
@@ -85,10 +93,10 @@ class Cleaning:
             ''
         ], None)
         
-        df_to_clean['ACTIVITY'] = df_to_clean['ACTIVITY'].replace(r'(?i).*wreck.*', 'Shipwreck involved', regex=True)
+        df_to_clean['ACTIVITY'] = df_to_clean['ACTIVITY'].replace(r'(?i).*wreck.*', 'Shipwreck', regex=True)
         df_to_clean['ACTIVITY'] = df_to_clean['ACTIVITY'].replace(r'(?i).*sea dis.*', 'Sea disaster', regex=True)
         df_to_clean['ACTIVITY'] = df_to_clean['ACTIVITY'].replace(r'(?i).*s[iu]nk.*', 'Sinking involved', regex=True)
-        df_to_clean['ACTIVITY'] = df_to_clean['ACTIVITY'].replace(r'(?i).*days.*', 'Spending days in the ocean', regex=True)
+        df_to_clean['ACTIVITY'] = df_to_clean['ACTIVITY'].replace(r'(?i).*days.*', 'Spent days in the ocean', regex=True)
         df_to_clean['ACTIVITY'] = df_to_clean['ACTIVITY'].replace(r'(?i).*rid.*shark.*', 'Riding shark', regex=True)
         df_to_clean['ACTIVITY'] = df_to_clean['ACTIVITY'].replace(r'(?i).*f[ae]ll.*', 'Falling in the water', regex=True)
         df_to_clean['ACTIVITY'] = df_to_clean['ACTIVITY'].replace(r'(?i).*horse.*', 'Riding horse', regex=True)
@@ -137,6 +145,29 @@ class Cleaning:
 
         return df_to_clean
 
+    def clean_ages(self, df_to_clean):
+        print("Cleaning ages...")
+        df_to_clean['AGE'] = df_to_clean['AGE'].replace((
+            r'(?i).*young.*',
+            r'(?i).*month.*',
+        ), 5, regex=True)
+
+        df_to_clean['AGE'] = df_to_clean['AGE'].replace((
+            r'(?i).*teen.*',
+        ), 15, regex=True)
+
+        df_to_clean['AGE'] = df_to_clean['AGE'].replace((
+            r'(?i).*adul.*',
+        ), 30, regex=True)
+
+        df_to_clean['AGE'] = df_to_clean['AGE'].replace((
+            r'(?i).*elder.*',
+        ), 70, regex=True)
+
+        df_to_clean['AGE'] = pd.to_numeric(df_to_clean['AGE'], errors='coerce').astype('Int64')
+
+        return df_to_clean
+    
     def clean_injuries(self, df_to_clean):
         print("Cleaning injuries...")
 
@@ -228,25 +259,221 @@ class Cleaning:
 
         return df_to_clean
 
+    def clean_time(self, df_to_clean):
+        print("Cleaning times...")
+
+        df_to_clean['TIME'] = df_to_clean['TIME'].replace((
+            r'(?i)h.*',
+            r'(?i)j.*',
+            r'(?i)00',
+            r'(?i)30',
+        ), '', regex=True)
+
+        df_to_clean['TIME'] = df_to_clean['TIME'].replace((
+            r'(?i).*nig.*',
+            r'(?i).*set.*',
+            r'(?i).*dark.*',
+            r'(?i).*evening.*',
+            r'(?i).*dusk.*',
+            r'(?i).*am.*',
+            r'(?i).*A\.M\..*',
+        ), 22, regex=True) # Night = 22h
+
+        df_to_clean['TIME'] = df_to_clean['TIME'].replace((
+            r'(?i).*after\s*no.*',
+            r'(?i).*down.*',
+            r'(?i).*day.*',
+            r'(?i).*pm.*',
+            r'(?i).*P\.M\..*',
+        ), 15, regex=True) # Day = 15h
+
+        df_to_clean['TIME'] = df_to_clean['TIME'].replace((
+            r'(?i)mornin.*',
+            r'(?i)noon.*',
+            r'(?i)dawn.*',
+        ), 10, regex=True) # Morning = 8h
+
+        df_to_clean['TIME'] = df_to_clean['TIME'].replace((
+            '',
+            '--',
+            '"',
+            r'(?i).*betwe.*',
+            r'(?i).*fatal.*',
+            r'(?i).*before.*',
+            r'(?i).*lunc.*',
+            r'(?i).*after.*',
+            r'(?i).*x.*',
+            r'(?i).*s$',
+            r'(?i).*[<>].*',
+        ), None, regex=True)
+
+        df_to_clean['TIME'] = df_to_clean['TIME'].replace((
+            r'(?i)^0.*',
+        ), '', regex=True)
+
+        df_to_clean['TIME'] = pd.to_numeric(df_to_clean['TIME'], errors='coerce').astype('Int64')
+
+        return df_to_clean
+    
+    def clean_species(self, df_to_clean):
+        print("Cleaning species...")
+
+        df_to_clean['SPECIES'] = df_to_clean['SPECIES'].replace((
+            r'(?i).*white.*',
+        ), 'White shark', regex=True)
+
+        df_to_clean['SPECIES'] = df_to_clean['SPECIES'].replace((
+            r'(?i).*nurse.*',
+        ), 'Nurse shark', regex=True)
+
+        df_to_clean['SPECIES'] = df_to_clean['SPECIES'].replace((
+            r'(?i).*tiger.*',
+        ), 'Tiger shark', regex=True)
+
+        df_to_clean['SPECIES'] = df_to_clean['SPECIES'].replace((
+            r'(?i).*bull.*',
+        ), 'Bull shark', regex=True)
+
+        df_to_clean['SPECIES'] = df_to_clean['SPECIES'].replace((
+            r'(?i).*silver.*',
+        ), 'Silvertip shark', regex=True)
+
+        df_to_clean['SPECIES'] = df_to_clean['SPECIES'].replace((
+            r'(?i).*hammer.*',
+        ), 'Hammerhead shark', regex=True)
+
+        df_to_clean['SPECIES'] = df_to_clean['SPECIES'].replace((
+            r'(?i).*hammer.*',
+        ), 'Whale shark', regex=True)
+
+        df_to_clean['SPECIES'] = df_to_clean['SPECIES'].replace((
+            r'(?i).*black.*',
+        ), 'Blacktip shark', regex=True)
+
+        df_to_clean['SPECIES'] = df_to_clean['SPECIES'].replace((
+            r'(?i).*galapagos.*',
+        ), 'Galapagos shark', regex=True)
+
+        df_to_clean['SPECIES'] = df_to_clean['SPECIES'].replace((
+            r'(?i).*spin.*',
+        ), 'Spinner shark', regex=True)
+
+        df_to_clean['SPECIES'] = df_to_clean['SPECIES'].replace((
+            r'(?i).*mak.*',
+        ), 'Mako shark', regex=True)
+
+        df_to_clean['SPECIES'] = df_to_clean['SPECIES'].replace((
+            r'(?i).*blu.*',
+        ), 'Blue shark', regex=True)
+
+        df_to_clean['SPECIES'] = df_to_clean['SPECIES'].replace((
+            r'(?i).*gr[ae]y.*',
+        ), 'Grey shark', regex=True)
+
+        df_to_clean['SPECIES'] = df_to_clean['SPECIES'].replace((
+            r'(?i).*sandbar.*',
+        ), 'Sandbar shark', regex=True)
+
+        df_to_clean['SPECIES'] = df_to_clean['SPECIES'].replace((
+            r'(?i).*sand.*',
+        ), 'Sand shark', regex=True)
+
+        df_to_clean['SPECIES'] = df_to_clean['SPECIES'].replace((
+            r'(?i).*reef.*',
+            r'(?i).*carib.*',
+        ), 'Reef shark', regex=True)
+
+        df_to_clean['SPECIES'] = df_to_clean['SPECIES'].replace((
+            r'(?i).*lemon.*',
+        ), 'Lemon shark', regex=True)
+
+        df_to_clean['SPECIES'] = df_to_clean['SPECIES'].replace((
+            r'(?i).*wobb.*',
+        ), 'Wobbegong shark', regex=True)
+
+        df_to_clean['SPECIES'] = df_to_clean['SPECIES'].replace((
+            r'(?i).*whaler.*',
+            r'(?i).*copper.*',
+            r'(?i).*bronze.*',
+            r'(?i).*narrowtooth.*',
+        ), 'Copper shark', regex=True)
+
+        df_to_clean['SPECIES'] = df_to_clean['SPECIES'].replace((
+            r'(?i).*whip.*',
+            r'(?i).*thresh.*',
+        ), 'Whiptail shark', regex=True)
+
+        df_to_clean['SPECIES'] = df_to_clean['SPECIES'].replace((
+            r'(?i).*zambes.*',
+        ), 'Zambesi shark', regex=True)
+
+        df_to_clean['SPECIES'] = df_to_clean['SPECIES'].replace((
+            r'(?i).*barrac.*',
+        ), 'Barracuda', regex=True)
+
+        df_to_clean['SPECIES'] = df_to_clean['SPECIES'].replace((
+            r'(?i).*smal.*',
+            r'(?i).*dog.*',
+            r'(?i).*little.*',
+            r'(?i).*tiny.*',
+            r'(?i).*juvenile.*',
+            r'(?i).*young.*',
+            r'(?i).*[0123]\.?.*m?.*',
+        ), 'Small', regex=True)
+
+        df_to_clean['SPECIES'] = df_to_clean['SPECIES'].replace((
+            r'(?i).*big.*',
+            r'(?i).*large.*',
+            r'(?i).*long.*',
+            r'(?i).*[456789]\.?.*m?.*',
+        ), 'Big', regex=True)
+
+        df_to_clean['SPECIES'] = df_to_clean['SPECIES'].replace((
+            r'(?i).*invo.*',
+            r'(?i).*unknown.*',
+            r'(?i).*possib.*',
+            r'(?i).*question.*',
+            r'(?i).*not.*',
+            r'(?i).*uniden.*',
+            r'(?i).*inval.*',
+            r'(?i).*doubt.*',
+        ), None, regex=True)
+
+        df_to_clean['SPECIES'] = df_to_clean['SPECIES'].replace((
+            r'(?i).*shark\'s.*',
+            r'(?i).*pack.*',
+            r'(?i).*school.*',
+            r'(?i).*number.*',
+        ), 'Multiple sharks', regex=True)
+
+        value_counts = df_to_clean['SPECIES'].value_counts()
+        df_to_clean['SPECIES'] = df_to_clean['SPECIES'].map(
+            lambda species: 'Other' if value_counts.get(species, 0) < 10 else species
+        )
+
+        return df_to_clean
+
 class Analysis:
     def __init__(self, clean_dataframe):
         print("\nAnalysing...\n")
         self.dataframe = clean_dataframe
         
-        self.attacks_by_year()
-        self.type_count()
-        self.attacks_by_country()
-        self.attacks_by_area_by_countries()
-        self.activity_count()
+        self.year_analysis()
+        self.type_analysis()
+        self.country_analysis()
+        self.activity_analysis()
+        self.age_analysis()
         self.injury_analysis()
         self.fatality_analysis()
+        self.time_analysis()
+        self.species_analysis()
 
         # self.brazil_analysis()
 
         return print("\nAnalysis finished.\n")
 
-
-    def attacks_by_year(self):
+    def year_analysis(self):
+        print("Analysing years...")
         attacks_by_year = self.dataframe['YEAR'].value_counts().to_dict()
 
         # for value in self.dataframe['DATE'].values:
@@ -257,61 +484,64 @@ class Analysis:
 
         return attacks_by_year
 
-    def type_count(self):
+    def type_analysis(self):
+        print("Analysing types...")
         type_count = self.dataframe['TYPE'].value_counts().to_dict()
 
         return type_count
 
-    def attacks_by_country(self):
+    def country_analysis(self):
+        print("Analysing countries...")
         attacks_by_country = self.dataframe['COUNTRY'].value_counts().to_dict()
 
         return attacks_by_country
-    
-    def attacks_by_area_by_countries(self):
-        attacks_by_area_by_countries = defaultdict(dict) # {'COUNTRY_A':{'area_1':74, 'Rio de area_2':11}, 'COUNTRY_B':{} }
 
-        for country in self.attacks_by_country().keys():
-            area_filter = self.dataframe['COUNTRY'] == str(country)
-
-            attacks_by_area_by_countries[str(country)] = self.dataframe[area_filter]['AREA'].value_counts().to_dict()
-
-        return attacks_by_area_by_countries
-
-    def activity_count(self):
+    def activity_analysis(self):
+        print("Analysing activities...")
         activity_count = self.dataframe['ACTIVITY'].value_counts().to_dict()
 
         return activity_count
 
     def age_analysis(self):
-        return
+        print("Analysing age...")
+
+        # age_count = {
+        #     'Under 15': 0,
+        #     'Between 15 and 25': 0,
+        #     'Between 25 and 60': 0,
+        #     'Over 60': 0
+        # }
+        # for age, amount in self.dataframe['AGE'].value_counts().items():
+
+        #     if int(age) > 0 and int(age) < 15:
+        #         age_count['Under 15'] += amount
+
+        #     elif int(age) > 15 and int(age) < 25:
+        #         age_count["Between 15 and 25"] += amount
+
+        #     elif int(age) > 25 and int(age) < 60:
+        #         age_count["Between 25 and 60"] += amount
+
+        #     elif int(age) > 60:
+        #         age_count["Over 60"] += amount
+
+        bins = [0, 15, 25, 60, float('inf')]
+        labels = ['Under 15', 'Between 15 and 25', 'Between 25 and 60', 'Over 60']
+
+        self.dataframe['AGE'] = pd.cut(self.dataframe['AGE'], bins=bins, labels=labels, right=False)
+
+        age_count = self.dataframe['AGE'].value_counts().to_dict()
+        
+        return age_count
 
     def injury_analysis(self):
         print("Analysing injuries...")
-        injuries_analysis = {}
-        injuries_analysis['No injury'] = self.dataframe['INJURY'].str.contains(r'(?i).*no injury.*', regex=True).sum()
-        injuries_analysis['Amputations'] = self.dataframe['INJURY'].str.contains(r'(?i).*amput.*', regex=True).sum()
+        injury_count = self.dataframe['INJURY'].value_counts().to_dict()
 
-        injuries_analysis['Legs'] = self.dataframe['INJURY'].str.contains(r'(?i).*leg.*', regex=True).sum()
-        injuries_analysis['Hands'] = self.dataframe['INJURY'].str.contains(r'(?i).*hand.*', regex=True).sum()
-        injuries_analysis['Arms'] = self.dataframe['INJURY'].str.contains(r'(?i).*arm.*', regex=True).sum()
-        injuries_analysis['Feet'] = self.dataframe['INJURY'].str.contains(r'(?i).*f[oe][oe]t.*', regex=True).sum()
-
-        injuries_analysis['Minor'] = self.dataframe['INJURY'].str.contains(r'(?i).*minor.*', regex=True).sum()
-
-        injuries_analysis['Severe'] = self.dataframe['INJURY'].str.contains(r'(?i).*severe.*', regex=True).sum()
-        injuries_analysis['Severe'] = self.dataframe['INJURY'].str.contains(r'(?i).*serious.*', regex=True).sum()
-
-        injuries_analysis['Bites'] = self.dataframe['INJURY'].str.contains(r'(?i).*bit.*', regex=True).sum()
-        injuries_analysis['Bites'] = self.dataframe['INJURY'].str.contains(r'(?i).*lacer.*', regex=True).sum()
-
-        injuries_analysis['Other'] = self.dataframe['INJURY'].str.contains(r'(?i).*other.*', regex=True).sum()
-
-        injuries_analysis = pd.Series(injuries_analysis).sort_values(ascending=False).to_dict()
-
-        # return print(injuries_analysis)
-        return print(injuries_analysis), print(self.dataframe['INJURY'].value_counts())
+        return injury_count
 
     def fatality_analysis(self):
+        print("Analysing fatalities...")
         total_attacks = len(self.dataframe['FATALITY']) # 6302
         total_registers = self.dataframe['FATALITY'].count() # não conta None # 5691
         fatalities = self.dataframe['FATALITY'].value_counts().get('Y') # 1389
@@ -342,10 +572,22 @@ class Analysis:
         return fatality_analysis
 
     def time_analysis(self):
-        return
+        print("Analysing time...")
+
+        bins = [0, 5, 12, 18, float('inf')]
+        labels = ['Night', 'Morning', 'Afternoon', 'Evening']
+
+        self.dataframe['TIME'] = pd.cut(self.dataframe['TIME'], bins=bins, labels=labels, right=False)
+
+        time_analysis = self.dataframe['TIME'].value_counts().to_dict()
+    
+        return time_analysis
 
     def species_analysis(self):
-        return
+        print("Analysing species...")
+        species_count = self.dataframe['SPECIES'].value_counts().to_dict()
+        
+        return species_count
     
     def brazil_attacks_by_area(self):
         area_filter = self.dataframe['COUNTRY'] == 'BRAZIL'
@@ -360,10 +602,10 @@ class Analysis:
         return print(f'\n> Brazil shark attacks by location:\n{brazil_attacks}')
     
     def brazil_analysis(self):
+        print("\nRunning Brazil analysis...")
         self.brazil_attacks_by_area()
         self.brazil_attacks_by_location()
     
-
 class BiAnalysis:
     def __init__(self, clean_dataframe):
         self.dataframe = clean_dataframe
@@ -384,6 +626,17 @@ class BiAnalysis:
             #         activity_by_type[type] = correspondent_activity
 
         return print(activity_by_type)
+    
+    def attacks_by_area_by_countries(self):
+        print("Analysing attacks by area and country...")
+        attacks_by_area_by_countries = defaultdict(dict) # {'COUNTRY_A':{'area_1':74, 'area_2':11}, 'COUNTRY_B':{} }
+
+        for country in Analysis(self.dataframe).country_analysis().keys():
+            area_filter = self.dataframe['COUNTRY'] == str(country)
+
+            attacks_by_area_by_countries[str(country)] = self.dataframe[area_filter]['AREA'].value_counts().to_dict()
+
+        return attacks_by_area_by_countries
             
 
     def provoked_attacks_proportion(self):
@@ -430,14 +683,14 @@ def main():
         'Injury':       'INJURY',
         'Fatal (Y/N)':  'FATALITY',
         'Time':         'TIME',
-        'Species':      'SPECIES'
+        'Species ':      'SPECIES'
     })
     
     dataframe = Cleaning(csv_dataframe)
     dataframe = dataframe.clean
 
     analysis = Analysis(dataframe)
-    # bivariate_analysis = BiAnalysis(dataframe)
+    bivariate_analysis = BiAnalysis(dataframe)
 
     return print("\nJAWS FINISHED\n")
 
