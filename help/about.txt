@@ -93,3 +93,6 @@ Perguntas:
     A maior incidência de ataques é dos brancos?
 
     Em quais circunstâncias é mais comum o ataque?
+
+
+Foco: Análise da fatalidade dos ataques
