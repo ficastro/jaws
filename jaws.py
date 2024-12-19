@@ -678,11 +678,11 @@ class UnivariateAnalysis:
         missing_fatalities = self.dataframe['FATALITY'].isna().sum() # 611
 
         fatality_percentage = round( (fatalities / total_registers) * 100)
-        missing_positives_proportion = round(missing_fatalities * fatality_percentage/100)
-        missing_negatives_proportion = missing_fatalities - missing_positives_proportion
+        missing_positives_portion = round(missing_fatalities * fatality_percentage/100)
+        missing_negatives_portion = missing_fatalities - missing_positives_portion
 
-        fatalities += missing_positives_proportion
-        non_fatalities += missing_negatives_proportion
+        fatalities += missing_positives_portion
+        non_fatalities += missing_negatives_portion
 
         # new_fatality_percentage = round((fatalities / total_registers) * 100)
 
