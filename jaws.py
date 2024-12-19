@@ -1,6 +1,8 @@
+import numpy as np
 import pandas as pd
 from collections import defaultdict
 from matplotlib import pyplot
+
 class Cleaning:
     def __init__(self, original_dataframe):
         self.original = original_dataframe
@@ -814,7 +816,7 @@ class BivariateAnalysis(UnivariateAnalysis):
                 + len(other_unfatal_attacks)
             )
 
-            type_modifier = ( (attacks_by_type[type]) / sum(attacks_by_type.values()) ) * 100
+            type_modifier = ( attacks_by_type[type] / sum(attacks_by_type.values()) ) * 100
 
             if len(type_fatal_attacks) != 0:
                 type_fatality_proportion = round( ((len(type_fatal_attacks) / all_attacks_count) * 100) * type_modifier )
@@ -861,7 +863,7 @@ class BivariateAnalysis(UnivariateAnalysis):
                 + len(other_unfatal_attacks)
             )
 
-            activity_modifier = ( (attacks_by_activity[activity]) / sum(attacks_by_activity.values()) ) * 100
+            activity_modifier = ( attacks_by_activity[activity] / sum(attacks_by_activity.values()) ) * 100
             
             if len(activity_fatal_attacks) != 0:
                 activity_fatality_proportion = round( ((len(activity_fatal_attacks) / all_attacks_count) * 100) * activity_modifier)
@@ -907,7 +909,7 @@ class BivariateAnalysis(UnivariateAnalysis):
                 + len(other_unfatal_attacks)
             )
 
-            country_modifier = ( (attacks_by_country[country]) / sum(attacks_by_country.values()) ) * 100
+            country_modifier = ( attacks_by_country[country] / sum(attacks_by_country.values()) ) * 100
 
             if len(country_fatal_attacks) != 0:
                 country_fatality_proportion = round( ((len(country_fatal_attacks) / all_attacks_count) * 100) * country_modifier )
@@ -956,7 +958,7 @@ class BivariateAnalysis(UnivariateAnalysis):
                 + len(other_unfatal_attacks)
             )
 
-            injury_modifier = ( (attacks_by_injury[injury]) / sum(attacks_by_injury.values()) ) * 100
+            injury_modifier = ( attacks_by_injury[injury] / sum(attacks_by_injury.values()) ) * 100
 
             if len(injury_fatal_attacks) != 0:
                 injury_fatality_proportion = round( ((len(injury_fatal_attacks) / all_attacks_count) * 100) * injury_modifier )
@@ -1002,7 +1004,7 @@ class BivariateAnalysis(UnivariateAnalysis):
                 + len(other_unfatal_attacks)
             )
 
-            species_modifier = ( (attacks_by_species[species]) / sum(attacks_by_species.values()) ) * 100
+            species_modifier = ( attacks_by_species[species] / sum(attacks_by_species.values()) ) * 100
 
             if len(species_fatal_attacks) != 0:
                 species_fatality_proportion = round( ((len(species_fatal_attacks) / all_attacks_count) * 100) * species_modifier )
@@ -1039,6 +1041,63 @@ class BivariateAnalysis(UnivariateAnalysis):
 class MultivariateAnalysis(BivariateAnalysis):
     def __init__(self, clean_dataframe):
         super().__init__(clean_dataframe)
+
+        self.surfing_fatality_by_country()
+
+    def surfing_fatality_by_country(self):
+        all_countries = self.dataframe['COUNTRY'].value_counts().head(10).to_dict()
+        all_activities = self.dataframe['ACTIVITY'].value_counts().head(10).to_dict()
+        del all_activities['Plane involved']
+        del all_activities['Ship involved']
+        del all_activities['Sinking']
+
+        attacks_by_country = self.country_analysis()
+
+        activity_fatality_by_country = {}
+
+        for country in all_countries:
+            fatality_by_activity = {}
+
+            for activity in all_activities:
+
+                activity_fatal_attacks = self.dataframe[(self.dataframe['ACTIVITY'] == activity) & (self.dataframe['FATALITY'] == 'Y') & (self.dataframe['COUNTRY'] == country)]
+                activity_nonfatal_attacks = self.dataframe[(self.dataframe['ACTIVITY'] == activity) & (self.dataframe['FATALITY'] == 'N') & (self.dataframe['COUNTRY'] == country)]
+
+                country_modifier = ( attacks_by_country[country] / sum(attacks_by_country.values()) ) * 100
+
+                if len(activity_fatal_attacks) != 0:
+                    activity_fatality = round((len(activity_fatal_attacks) / (len(activity_fatal_attacks) + len(activity_nonfatal_attacks)) ) * 100) * country_modifier
+                    fatality_by_activity[activity] = activity_fatality
+
+                for key, value in fatality_by_activity.items():
+                    fatality_by_activity[key] = ( value / sum(fatality_by_activity.values()) ) * 100
+
+            activity_fatality_by_country[country] = fatality_by_activity
+
+        countries = list(activity_fatality_by_country.keys())
+        activities = list(activity_fatality_by_country[countries[0]].keys())
+
+        values = {activity: [activity_fatality_by_country[country].get(activity, 0) for country in countries] for activity in activities}
+
+        x = np.arange(len(countries))
+        width = 0.1
+        fig, ax = pyplot.subplots(figsize=(15, 11))
+
+        for i, activity in enumerate(activities):
+            ax.bar(x + i * width, values[activity], width, label=activity)
+
+        ax.set_ylabel("Fatality rate (%)", fontsize=12)
+        ax.set_title("Shark attacks fatality rate by activity and country")
+        tick_positions = x + (width * (len(activities) - 1) / 2)
+        ax.set_xticks(tick_positions)
+        ax.set_xticklabels(countries, fontsize=12)
+        ax.legend(title="Activities", fontsize=12)
+
+        pyplot.tight_layout()
+        pyplot.savefig('views/fatality_by_activity_and_country.png', dpi=300, bbox_inches='tight')
+
+        return activity_fatality_by_country
+
 
 def main():
     print("\nRunning main...\n")
