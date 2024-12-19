@@ -444,6 +444,8 @@ class Cleaning:
 
         df_to_clean['SPECIES'] = df_to_clean['SPECIES'].replace((
             r'(?i).*white.*',
+            r'(?i).*whit.*',
+            r'(?i).*whi.*',
         ), 'White shark', regex=True)
 
         df_to_clean['SPECIES'] = df_to_clean['SPECIES'].replace((
