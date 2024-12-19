@@ -153,6 +153,7 @@ class Cleaning:
             r'(?i).*kaya.*',
             r'(?i).*kak.*',
             r'(?i).*canoe.*',
+            r'(?i).*board.*',
             r'(?i).*ski.*',
             r'(?i).*hik.*',
             r'(?i).*tread.*',
@@ -185,7 +186,7 @@ class Cleaning:
         df_to_clean['ACTIVITY'] = df_to_clean['ACTIVITY'].replace((
             r'(?i).*feed.*',
             r'(?i).*fed.*',
-        ), 'Feeding\nsharks', regex=True)
+        ), 'Fishing', regex=True)
 
         df_to_clean['ACTIVITY'] = df_to_clean['ACTIVITY'].replace((
             r'(?i).*fish.*',
@@ -200,11 +201,7 @@ class Cleaning:
             r'(?i).*rescue.*',
         ), 'Lifesaving', regex=True)
 
-        df_to_clean['ACTIVITY'] = df_to_clean['ACTIVITY'].replace((
-            r'(?i).*surf.*',
-            r'(?i).*board.*',
-        ), 'Surfing', regex=True)
-        
+        df_to_clean['ACTIVITY'] = df_to_clean['ACTIVITY'].replace(r'(?i).*surf.*', 'Surfing', regex=True)
         df_to_clean['ACTIVITY'] = df_to_clean['ACTIVITY'].replace(r'(?i).*div.*', 'Diving', regex=True)
         df_to_clean['ACTIVITY'] = df_to_clean['ACTIVITY'].replace(r'(?i).*hunt.*', 'Hunting', regex=True)
 
@@ -683,11 +680,11 @@ class UnivariateAnalysis:
         missing_fatalities = self.dataframe['FATALITY'].isna().sum() # 611
 
         fatality_percentage = round( (fatalities / total_registers) * 100)
-        missing_positives_portion = round(missing_fatalities * fatality_percentage/100)
-        missing_negatives_portion = missing_fatalities - missing_positives_portion
+        missing_positives_proportion = round(missing_fatalities * fatality_percentage/100)
+        missing_negatives_proportion = missing_fatalities - missing_positives_proportion
 
-        fatalities += missing_positives_portion
-        non_fatalities += missing_negatives_portion
+        fatalities += missing_positives_proportion
+        non_fatalities += missing_negatives_proportion
 
         # new_fatality_percentage = round((fatalities / total_registers) * 100)
 
