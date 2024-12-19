@@ -17,6 +17,7 @@ class Cleaning:
         cleaning_df = self.clean_dates(cleaning_df)
         cleaning_df = self.clean_type(cleaning_df)
         cleaning_df = self.clean_countries(cleaning_df)
+        cleaning_df = self.clean_area(cleaning_df)
         cleaning_df = self.clean_locations(cleaning_df)
         cleaning_df = self.clean_activities(cleaning_df)
         cleaning_df = self.clean_ages(cleaning_df)
@@ -81,17 +82,46 @@ class Cleaning:
         df_to_clean['AREA'] = df_to_clean['AREA'].str.strip()
         df_to_clean['AREA'] = df_to_clean['AREA'].replace('"', '')
 
+        df_to_clean['AREA'] = df_to_clean['AREA'].replace((
+            r'(?i).*rio de.*',
+        ), 'Rio\nde Janeiro', regex=True)
+
+        df_to_clean['AREA'] = df_to_clean['AREA'].replace((
+            r'(?i).*grande d[oe] n.*',
+        ), 'Rio Grande\ndo Norte', regex=True)
+    
+        df_to_clean['AREA'] = df_to_clean['AREA'].replace((
+            r'(?i).*grande d[oe] s.*',
+        ), 'Rio Grande\ndo Sul', regex=True)
+
+        df_to_clean['AREA'] = df_to_clean['AREA'].replace((
+            r'(?i).*porto se.*',
+        ), 'Bahia', regex=True)
+
+        df_to_clean['AREA'] = df_to_clean['AREA'].replace((
+            r'(?i).*catarina.*',
+            r'(?i).*cambor.*',
+        ), 'Santa\nCatarina', regex=True)
+
+        df_to_clean['AREA'] = df_to_clean['AREA'].replace((
+            r'(?i).*noron.*',
+        ), 'Fernando\nde Noronha', regex=True)
+
+        df_to_clean['AREA'] = df_to_clean['AREA'].replace((
+            r'(?i).*vic?tor.*',
+        ), 'Vitória', regex=True)
+
         return df_to_clean
     
     def clean_locations(self, df_to_clean):
         print("Cleaning locations...")
-        df_to_clean['LOCATION'] = df_to_clean['LOCATION'].replace(r'.*Recife.*', 'Recife', regex=True)
-        df_to_clean['LOCATION'] = df_to_clean['LOCATION'].replace(r'.*Piedade.*', 'Recife', regex=True)
-        df_to_clean['LOCATION'] = df_to_clean['LOCATION'].replace(r'.*Noronha.*', 'Fernando de Noronha', regex=True)
-        df_to_clean['LOCATION'] = df_to_clean['LOCATION'].replace(r'.*Estale.*', 'Balneário Camboriú', regex=True)
-        df_to_clean['LOCATION'] = df_to_clean['LOCATION'].replace(r'.*Escale.*', 'Balneário Camboriú', regex=True)
-        df_to_clean['LOCATION'] = df_to_clean['LOCATION'].replace(r'.*S.o Lui.', 'São Luis', regex=True)
-        df_to_clean['LOCATION'] = df_to_clean['LOCATION'].replace(r'.*Rio de Jan.*', 'Rio de Janeiro', regex=True)
+        df_to_clean['LOCATION'] = df_to_clean['LOCATION'].replace(r'(?i).*recife.*', 'Recife', regex=True)
+        df_to_clean['LOCATION'] = df_to_clean['LOCATION'].replace(r'(?i).*piedade.*', 'Recife', regex=True)
+        df_to_clean['LOCATION'] = df_to_clean['LOCATION'].replace(r'(?i).*noronha.*', 'Fernando de Noronha', regex=True)
+        df_to_clean['LOCATION'] = df_to_clean['LOCATION'].replace(r'(?i).*estale.*', 'Balneário Camboriú', regex=True)
+        df_to_clean['LOCATION'] = df_to_clean['LOCATION'].replace(r'(?i).*escale.*', 'Balneário Camboriú', regex=True)
+        df_to_clean['LOCATION'] = df_to_clean['LOCATION'].replace(r'(?i).*s.o Lui.', 'São Luis', regex=True)
+        df_to_clean['LOCATION'] = df_to_clean['LOCATION'].replace(r'(?i).*rio de jan.*', 'Rio de Janeiro', regex=True)
         
         return df_to_clean
     
@@ -267,21 +297,13 @@ class Cleaning:
             r'(?i).*severe.*',
             r'(?i).*serious.*',
             r'(?i).*major.*',
+            # r'(?i).*lacer.*'
         ), 'Severe', regex=True)
-
-        df_to_clean['INJURY'] = df_to_clean['INJURY'].replace((
-            r'(?i).*hand.*',
-            r'(?i).*finger.*',
-            r'(?i).*finger.*',
-        ), 'Hands', regex=True)
-
-        df_to_clean['INJURY'] = df_to_clean['INJURY'].replace((
-            r'(?i).*f[oe][oe]t.*',
-            r'(?i).*ankle.*',
-            r'(?i).*heel.*',
-            r'(?i).*toe.*',
-        ), 'Feet', regex=True)
         
+        """
+        Atenção: alternando a ordem dos quatro próximos (Arms, Legs, Hands e Feets), obtem-se resultados diferentes.
+        O algoritmo deve reconhecer qual prevalece em cada caso.
+        """
         df_to_clean['INJURY'] = df_to_clean['INJURY'].replace((
             r'(?i).*arm.*',
             r'(?i).*shoulder.*',
@@ -292,6 +314,18 @@ class Cleaning:
             r'(?i).*thigh.*',
             r'(?i).*calf.*',
         ), 'Legs', regex=True)
+
+        df_to_clean['INJURY'] = df_to_clean['INJURY'].replace((
+            r'(?i).*f[oe][oe]t.*',
+            r'(?i).*ankle.*',
+            r'(?i).*heel.*',
+            r'(?i).*toe.*',
+        ), 'Feet', regex=True)
+
+        df_to_clean['INJURY'] = df_to_clean['INJURY'].replace((
+            r'(?i).*hand.*',
+            r'(?i).*finger.*',
+        ), 'Hands', regex=True) # Hands vinha muito em primeiro lugar, então ficou por último entre Arms, Legs e Feet; 
 
         df_to_clean['INJURY'] = df_to_clean['INJURY'].replace((
             r'(?i).*no details.*',
@@ -324,8 +358,8 @@ class Cleaning:
 
         df_to_clean['INJURY'] = df_to_clean['INJURY'].replace((
             r'(?i).*bit.*',
-            r'(?i).*lacer.*'
-        ), 'Bites', regex=True)
+            r'(?i).*lacer.*',
+        ), None, regex=True)
 
         value_counts = df_to_clean['INJURY'].value_counts()
         df_to_clean['INJURY'] = df_to_clean['INJURY'].map(
@@ -545,6 +579,7 @@ class Cleaning:
 
         return df_to_clean
 
+
 class UnivariateAnalysis:
     def __init__(self, clean_dataframe):
         self.dataframe = clean_dataframe
@@ -559,7 +594,9 @@ class UnivariateAnalysis:
         self.time_analysis()
         self.species_analysis()
 
-        # self.brazil_analysis()
+        self.brazil_analysis()
+
+        pyplot.close()
 
         return print("\nAnalysis finished.\n")
 
@@ -584,10 +621,11 @@ class UnivariateAnalysis:
         pyplot.figure(figsize=(13, 9))
         pyplot.bar(names, count, width=0.6)
         pyplot.title("Rate of shark attacks by type")
-        pyplot.ylabel("Rate of shark attacks %")
+        pyplot.ylabel("Rate of shark attacks (%)")
         pyplot.xticks(range(len(names)), names, fontsize=9)
         
         pyplot.savefig('views/attacks_by_type.png', dpi=300, bbox_inches='tight')
+        
 
         return type_count
 
@@ -607,10 +645,11 @@ class UnivariateAnalysis:
         pyplot.figure(figsize=(13, 9))
         pyplot.bar(names, count, width=0.6)
         pyplot.title("Rate of shark attacks by country")
-        pyplot.ylabel("Rate of shark attacks %")
+        pyplot.ylabel("Rate of shark attacks (%)")
         pyplot.xticks(range(len(names)), names, fontsize=9)
         
         pyplot.savefig('views/attacks_by_country.png', dpi=300, bbox_inches='tight')
+        
 
         return attacks_by_country
 
@@ -629,10 +668,11 @@ class UnivariateAnalysis:
         pyplot.figure(figsize=(13, 9))
         pyplot.bar(names, count, width=0.6)
         pyplot.title("Rate of shark attacks by activity")
-        pyplot.ylabel("Rate of shark attacks %")
+        pyplot.ylabel("Rate of shark attacks (%)")
         pyplot.xticks(range(len(names)), names, fontsize=9)
         
         pyplot.savefig('views/attacks_by_activity.png', dpi=300, bbox_inches='tight')
+        
 
         return activity_count
 
@@ -663,10 +703,11 @@ class UnivariateAnalysis:
         pyplot.figure(figsize=(13, 9))
         pyplot.bar(names, count, width=0.6)
         pyplot.title("Rate of injuries by shark attacks")
-        pyplot.ylabel("Rate of injuries %")
+        pyplot.ylabel("Rate of injuries (%)")
         pyplot.xticks(range(len(names)), names, fontsize=9)
         
         pyplot.savefig('views/attacks_by_injury.png', dpi=300, bbox_inches='tight')
+        
 
         return injury_count
 
@@ -676,7 +717,6 @@ class UnivariateAnalysis:
         total_registers = self.dataframe['FATALITY'].count() # não conta None # 5691
         fatalities = self.dataframe['FATALITY'].value_counts().get('Y') # 1389
         non_fatalities = self.dataframe['FATALITY'].value_counts().get('N') # 4302
-        
         missing_fatalities = self.dataframe['FATALITY'].isna().sum() # 611
 
         fatality_percentage = round( (fatalities / total_registers) * 100)
@@ -691,23 +731,36 @@ class UnivariateAnalysis:
         fatality_analysis = {}
         fatality_analysis['Fatalities'] = fatalities
         fatality_analysis['Non-fatalitiies'] =  non_fatalities
+
         # fatality_analysis['Total attacks'] = total_attacks
         # fatality_analysis['Unkown'] = missing_fatalities
         # fatality_analysis['Fatality percentage'] = (fatality_percentage + new_fatality_percentage) / 2
+        # fatality_percentage = fatality_analysis
+        # for key, value in fatality_percentage.items():
+        #     fatality_percentage[key] = ( value / sum(fatality_percentage.values()) ) * 100
+        # names = fatality_percentage.keys()
+        # count = fatality_percentage.values()
+        # pyplot.figure(figsize=(13, 9))
+        # pyplot.bar(names, count, width=0.6)
+        # pyplot.title("Rate of fatality by shark attacks")
+        # pyplot.ylabel("Rate of fatality (%)")
+        # pyplot.xticks(range(len(names)), names, fontsize=12)
+        # pyplot.savefig('views/attacks_by_fatality.png', dpi=300, bbox_inches='tight')
+        # 
 
-        fatality_percentage = fatality_analysis
-        for key, value in fatality_percentage.items():
-            fatality_percentage[key] = ( value / sum(fatality_percentage.values()) ) * 100
-
-        names = fatality_percentage.keys()
-        count = fatality_percentage.values()
+        names = fatality_analysis.keys()
+        count = fatality_analysis.values()
         pyplot.figure(figsize=(13, 9))
-        pyplot.bar(names, count, width=0.6)
-        pyplot.title("Rate of fatality by shark attacks")
-        pyplot.ylabel("Rate of fatality %")
-        pyplot.xticks(range(len(names)), names, fontsize=12)
+        pyplot.pie(
+            count,
+            labels=names,
+            autopct='%1.1f%%',
+            startangle=90,
+            textprops={'fontsize': 12}
+        )
+        pyplot.title("Rate of fatality by shark attacks", fontsize=16)
+        pyplot.savefig('views/attacks_by_fatality_pie.png', dpi=300, bbox_inches='tight')
         
-        pyplot.savefig('views/attacks_by_fatality.png', dpi=300, bbox_inches='tight')
 
         return fatality_analysis
 
@@ -738,9 +791,10 @@ class UnivariateAnalysis:
         pyplot.figure(figsize=(13, 9))
         pyplot.plot(names, count, linestyle='solid', linewidth=3)
         pyplot.title("Rate of shark attacks by time of the day")
-        pyplot.ylabel("Rate of shark attacks %")
+        pyplot.ylabel("Rate of shark attacks (%)")
         
         pyplot.savefig('views/attacks_by_time.png', dpi=300, bbox_inches='tight')
+        
 
         return time_analysis
 
@@ -759,30 +813,54 @@ class UnivariateAnalysis:
         pyplot.figure(figsize=(13, 9))
         pyplot.bar(names, count, width=0.6)
         pyplot.title("Rate of shark attacks by species")
-        pyplot.ylabel("Rate of shark attacks %")
+        pyplot.ylabel("Rate of shark attacks (%)")
         pyplot.xticks(range(len(names)), names, fontsize=9)
         
         pyplot.savefig('views/attacks_by_species.png', dpi=300, bbox_inches='tight')
+        
         
         return species_count
     
     def brazil_attacks_by_area(self):
         area_filter = self.dataframe['COUNTRY'] == 'BRAZIL'
-        brazil_attacks = self.dataframe[area_filter]['AREA'].value_counts()
+        brazil_attacks = self.dataframe[area_filter]['AREA'].value_counts().to_dict()
 
-        return print(f'\n> Brazil shark attacks by area:\n{brazil_attacks}')
+        names = brazil_attacks.keys()
+        count = brazil_attacks.values()
+        pyplot.figure(figsize=(13, 9))
+        pyplot.bar(names, count, width=0.4)
+        pyplot.title("Number of shark attacks by area in Brazil")
+        pyplot.ylabel("Number of attacks")
+        pyplot.xticks(range(len(names)), names, fontsize=9)
+        
+        pyplot.savefig('views/brazil_attacks_by_area.png', dpi=300, bbox_inches='tight')
+        
+
+        return brazil_attacks
     
     def brazil_attacks_by_location(self):
         area_filter = self.dataframe['COUNTRY'] == 'BRAZIL'
-        brazil_attacks = self.dataframe[area_filter]['LOCATION'].value_counts()
+        brazil_attacks = self.dataframe[area_filter]['LOCATION'].value_counts().to_dict()
 
-        return print(f'\n> Brazil shark attacks by location:\n{brazil_attacks}')
+        names = brazil_attacks.keys()
+        count = brazil_attacks.values()
+        pyplot.figure(figsize=(13, 9))
+        pyplot.bar(names, count, width=0.4)
+        pyplot.title("Number of attacks by location in Brazil")
+        pyplot.ylabel("Number of attacks")
+        pyplot.xticks(range(len(names)), names, fontsize=9)
+        
+        pyplot.savefig('views/brazil_attacks_by_location.png', dpi=300, bbox_inches='tight')
+        
+
+        return brazil_attacks
     
     def brazil_analysis(self):
         print("\nRunning Brazil analysis...")
         self.brazil_attacks_by_area()
         self.brazil_attacks_by_location()
-    
+
+
 class BivariateAnalysis(UnivariateAnalysis):
     def __init__(self, clean_dataframe):
         super().__init__(clean_dataframe)
@@ -792,6 +870,11 @@ class BivariateAnalysis(UnivariateAnalysis):
         self.fatality_by_country()
         self.fatality_by_injury()
         self.fatality_by_species()
+
+        self.attacks_by_species_by_country()
+        self.attacks_by_species_by_country()
+
+        pyplot.close()
 
     def fatality_by_type(self):
         print("Analysing fatality by type...") # Chance of death by type
@@ -832,10 +915,11 @@ class BivariateAnalysis(UnivariateAnalysis):
         pyplot.figure(figsize=(13, 9)) 
         pyplot.bar(names, fatalities_count, width=0.6, color='darkred')
         pyplot.title("Fatality rate of shark attacks by type")
-        pyplot.ylabel("Fatality rate %")
+        pyplot.ylabel("Fatality rate (%)")
         pyplot.xticks(range(len(names)), names, fontsize=9)
 
         pyplot.savefig('views/fatality_by_type.png', dpi=300, bbox_inches='tight')
+        
 
         return type_fatality_percentage
 
@@ -879,10 +963,11 @@ class BivariateAnalysis(UnivariateAnalysis):
         pyplot.figure(figsize=(13, 9)) 
         pyplot.bar(names, fatalities_count, width=0.6, color='darkred')
         pyplot.title("Fatality rate of shark attacks by activity")
-        pyplot.ylabel("Fatality rate %")
+        pyplot.ylabel("Fatality rate (%)")
         pyplot.xticks(range(len(names)), names, fontsize=9)
 
         pyplot.savefig('views/fatality_by_activity.png', dpi=300, bbox_inches='tight')
+        
 
         return activity_fatality_percentage
     
@@ -925,10 +1010,11 @@ class BivariateAnalysis(UnivariateAnalysis):
         pyplot.figure(figsize=(13, 9)) 
         pyplot.bar(names, fatalities_count, width=0.6, color='darkred')
         pyplot.title("Fatality rate of shark attacks by country")
-        pyplot.ylabel("Fatality rate %")
+        pyplot.ylabel("Fatality rate (%)")
         pyplot.xticks(range(len(names)), names, fontsize=9)
 
         pyplot.savefig('views/fatality_by_country.png', dpi=300, bbox_inches='tight')
+        
 
         return country_fatality_percentage
 
@@ -974,10 +1060,11 @@ class BivariateAnalysis(UnivariateAnalysis):
         pyplot.figure(figsize=(13, 9)) 
         pyplot.bar(names, fatalities_count, width=0.6, color='darkred')
         pyplot.title("Fatality rate of shark attacks based on injury")
-        pyplot.ylabel("Fatality rate %")
+        pyplot.ylabel("Fatality rate (%)")
         pyplot.xticks(range(len(names)), names, fontsize=9)
 
         pyplot.savefig('views/fatality_by_injury.png', dpi=300, bbox_inches='tight')
+        
 
         return injury_fatality_percentage
 
@@ -1020,14 +1107,15 @@ class BivariateAnalysis(UnivariateAnalysis):
         pyplot.figure(figsize=(13, 9)) 
         pyplot.bar(names, fatalities_count, width=0.6, color='darkred')
         pyplot.title("Fatality rate of shark attacks by species")
-        pyplot.ylabel("Fatality rate %")
+        pyplot.ylabel("Fatality rate (%)")
         pyplot.xticks(range(len(names)), names, fontsize=9)
 
         pyplot.savefig('views/fatality_by_species.png', dpi=300, bbox_inches='tight')
+        
 
         return species_fatality_percentage
 
-    def attacks_by_area_by_countries(self):
+    def attacks_by_area_by_country(self):
         print("Analysing attacks by area and country...")
         attacks_by_area_by_countries = defaultdict(dict) # {'COUNTRY_A':{'area_1':74, 'area_2':11}, 'COUNTRY_B':{} }
 
@@ -1037,14 +1125,73 @@ class BivariateAnalysis(UnivariateAnalysis):
             attacks_by_area_by_countries[str(country)] = self.dataframe[area_filter]['AREA'].value_counts().to_dict()
 
         return attacks_by_area_by_countries
+    
+    def attacks_by_species_by_country(self):
+        all_countries = self.dataframe['COUNTRY'].value_counts().head(10).to_dict()
+        all_activities = self.dataframe['SPECIES'].value_counts().head(10).to_dict() # All species
+        # del all_countries['BAHAMAS']
+        # del all_countries['FIJI']
+        # del all_countries['ITALY']
+
+        attacks_by_country = self.country_analysis()
+
+        activity_fatality_by_country = {}
+
+        for country in all_countries:
+            fatality_by_activity = {}
+
+            for activity in all_activities:
+
+                activity_fatal_attacks = self.dataframe[(self.dataframe['SPECIES'] == activity) & (self.dataframe['COUNTRY'] == country)]
+                activity_nonfatal_attacks = self.dataframe[(self.dataframe['SPECIES'] == activity) & (self.dataframe['COUNTRY'] == country)]
+
+                # country_modifier = ( attacks_by_country[country] / sum(attacks_by_country.values()) ) * 100
+                country_modifier = 1
+
+                if len(activity_fatal_attacks) != 0:
+                    activity_fatality = round((len(activity_fatal_attacks) / (len(activity_fatal_attacks) + len(activity_nonfatal_attacks)) ) * 100) * country_modifier
+                    fatality_by_activity[activity] = activity_fatality
+
+                for key, value in fatality_by_activity.items():
+                    fatality_by_activity[key] = ( value / sum(fatality_by_activity.values()) ) * 100
+
+            activity_fatality_by_country[country] = fatality_by_activity
+
+        countries = list(activity_fatality_by_country.keys())
+        activities = list(activity_fatality_by_country[countries[0]].keys())
+
+        values = {activity: [activity_fatality_by_country[country].get(activity, 0) for country in countries] for activity in activities}
+
+        x = np.arange(len(countries))
+        width = 0.1
+        fig, ax = pyplot.subplots(figsize=(15, 11))
+
+        for i, activity in enumerate(activities):
+            ax.bar(x + i * width, values[activity], width, label=activity)
+
+        ax.set_ylabel("Rate (%)", fontsize=12)
+        ax.set_title("Rate of shark attacks by species and country")
+        tick_positions = x + (width * (len(activities) - 1) / 2)
+        ax.set_xticks(tick_positions)
+        ax.set_xticklabels(countries, fontsize=12)
+        ax.legend(title="Species", fontsize=12)
+
+        pyplot.tight_layout()
+        pyplot.savefig('views/attacks_by_species_by_country.png', dpi=300, bbox_inches='tight')
+        
+        return activity_fatality_by_country
+
 
 class MultivariateAnalysis(BivariateAnalysis):
     def __init__(self, clean_dataframe):
         super().__init__(clean_dataframe)
 
-        self.surfing_fatality_by_country()
+        self.activity_fatality_by_country()
+        self.species_fatality_by_country()
 
-    def surfing_fatality_by_country(self):
+        pyplot.close()
+
+    def activity_fatality_by_country(self):
         all_countries = self.dataframe['COUNTRY'].value_counts().head(10).to_dict()
         all_activities = self.dataframe['ACTIVITY'].value_counts().head(10).to_dict()
         del all_activities['Plane involved']
@@ -1095,6 +1242,62 @@ class MultivariateAnalysis(BivariateAnalysis):
 
         pyplot.tight_layout()
         pyplot.savefig('views/fatality_by_activity_and_country.png', dpi=300, bbox_inches='tight')
+        
+
+        return activity_fatality_by_country
+    
+    def species_fatality_by_country(self):
+        all_countries = self.dataframe['COUNTRY'].value_counts().head(10).to_dict()
+        all_activities = self.dataframe['SPECIES'].value_counts().head(10).to_dict()
+        del all_countries['BAHAMAS']
+        del all_countries['FIJI']
+        del all_countries['ITALY']
+
+        attacks_by_country = self.country_analysis()
+
+        activity_fatality_by_country = {}
+
+        for country in all_countries:
+            fatality_by_activity = {}
+
+            for activity in all_activities:
+
+                activity_fatal_attacks = self.dataframe[(self.dataframe['SPECIES'] == activity) & (self.dataframe['FATALITY'] == 'Y') & (self.dataframe['COUNTRY'] == country)]
+                activity_nonfatal_attacks = self.dataframe[(self.dataframe['SPECIES'] == activity) & (self.dataframe['FATALITY'] == 'N') & (self.dataframe['COUNTRY'] == country)]
+
+                country_modifier = ( attacks_by_country[country] / sum(attacks_by_country.values()) ) * 100
+
+                if len(activity_fatal_attacks) != 0:
+                    activity_fatality = round((len(activity_fatal_attacks) / (len(activity_fatal_attacks) + len(activity_nonfatal_attacks)) ) * 100) * country_modifier
+                    fatality_by_activity[activity] = activity_fatality
+
+                for key, value in fatality_by_activity.items():
+                    fatality_by_activity[key] = ( value / sum(fatality_by_activity.values()) ) * 100
+
+            activity_fatality_by_country[country] = fatality_by_activity
+
+        countries = list(activity_fatality_by_country.keys())
+        activities = list(activity_fatality_by_country[countries[0]].keys())
+
+        values = {activity: [activity_fatality_by_country[country].get(activity, 0) for country in countries] for activity in activities}
+
+        x = np.arange(len(countries))
+        width = 0.1
+        fig, ax = pyplot.subplots(figsize=(15, 11))
+
+        for i, activity in enumerate(activities):
+            ax.bar(x + i * width, values[activity], width, label=activity)
+
+        ax.set_ylabel("Fatality rate (%)", fontsize=12)
+        ax.set_title("Shark attacks fatality rate by species and country")
+        tick_positions = x + (width * (len(activities) - 1) / 2)
+        ax.set_xticks(tick_positions)
+        ax.set_xticklabels(countries, fontsize=12)
+        ax.legend(title="Species", fontsize=12)
+
+        pyplot.tight_layout()
+        pyplot.savefig('views/fatality_by_species and.png', dpi=300, bbox_inches='tight')
+        
 
         return activity_fatality_by_country
 
